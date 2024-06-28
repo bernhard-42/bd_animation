@@ -13,7 +13,7 @@ time_track = np.linspace(0, 2, 181)
 rotation_track = np.linspace(0, 360, 181)
 ```
 
-define a full 360° rotation of an object in 2 seconds defined as 181 steps (181 to start with 0° and end with 360°). Each value of the rotation is the angle the object should be rotated to at the
+define a full 360° rotation of an object in 2 seconds defined as 181 steps (181 to start with 0° and end with 360°). Each value of the rotation is the angle the object should be rotated to.
 
 ### The animation library
 
@@ -23,7 +23,7 @@ The `bd_animation` library provides one class and two helper functions:
 
     A thin layer on top of the standard build123d `Compound`. The initializer gets three keyword parameters:
 
-    - `children`: A dict of object name and object, e.g. `children={"base": base, "disk": disk, "arm": arm}`
+    - `children`: A dict of object names and objects, e.g. `children={"base": base, "disk": disk, "arm": arm}`
     - `label`: The name of the `AnimationGroup`
     - `assemble`: If the objects have build123d `Joints`, then `assemble` defines how to fit the objects together. It is an array of tuples, where each tuple defines one connection. For example
 
