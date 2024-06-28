@@ -25,7 +25,7 @@ The `bd_animation` library provides one class and two helper functions:
 
     - `children`: A dict of object names and objects, e.g. `children={"base": base, "disk": disk, "arm": arm}`
     - `label`: The name of the `AnimationGroup`
-    - `assemble`: If the objects have build123d `Joints`, then `assemble` defines how to fit the objects together. It is an array of tuples, where each tuple defines one connection. For example
+    - `assemble`: If the objects have build123d `Joints`, then `assemble` defines how to connect the objects. It is an array of tuples, where each tuple defines one connection. `AnimationGroup` as a subclass of `Compound` uses `build123d.Joints.connect_to` to connect the objects. For example
 
       ```python
       assemble=[
@@ -34,12 +34,12 @@ The `bd_animation` library provides one class and two helper functions:
       ]
       ```
 
-      will connect (by using `build123d.Joints.connect_to`)
+      will connect
 
       - the `center` joint of the object `disk` to the `disk_base` joint of object `base`
       - the `connect` joint of the object `arm` to the `arm_base` joint of object `base`
 
-      The generic pattern is: `path:joint_name`. In a hierarchical `AnimationGroup`, `path` will be the path of object names from root to object, e.g. `"/hexapod/left_leg/upper_leg"`. The leading `/` can be omitted. The class ensures that the objects are connected before they get added to the `build123d.Compound`
+      The generic pattern is `path:joint_name`. In a hierarchical `AnimationGroup`, `path` will be the path of object names from root down to the object, e.g. `"/hexapod/left_leg/upper_leg"`. The leading `/` can be omitted. The class ensures that the objects are connected _before_ they get added to the `build123d.Compound` (current build123d restriction).
 
       **Notes:**
 
@@ -102,7 +102,7 @@ def angle_arm(angle_disk):
     return np.rad2deg(np.arctan2(v[1], v[0]))
 ```
 
-We cen then use this function to create the animation track for the disk and for the arm:
+We can then use this function to create the animation track for the disk and for the arm:
 
 ```python
 animation = Animation(disk_arm)
@@ -118,7 +118,7 @@ animation.add_track("/disk_arm/disk", "rz", time_track, normalize_track(disk_tra
 animation.add_track("/disk_arm/arm", "rz", time_track, normalize_track(arm_track))
 ```
 
-`add_track` receives the full path of the object to animate. `rx`, `ry`, `rz` tell the animation system to rotate around the x-, y- or z-axis. Other animation tasks are `tx`, `ty`, `tz` with translate the nobject in x-, y- or z-direction. And `t` allows to provide a three-tuple `(x,y,z)` with relative corrdinates `x`, `y`, `z`. The same object can have more than one animation track, threejs will mix them together.
+`add_track` receives the full path of the object to animate. `rx`, `ry`, `rz` tell the animation system to rotate around the x-, y- or z-axis. Other animation tasks are `tx`, `ty`, `tz` which translate the object in x-, y- or z-direction. And `t` allows to provide a 3-tuple `(x,y,z)` with relative coordinates `x`, `y`, `z`. The same object can have more than one animation track, threejs will mix them together.
 
 Finally, initiate the animation:
 
