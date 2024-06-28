@@ -1,0 +1,9 @@
+.DS_Store
+__pycache__
+*.egg-info
+build/
+build
+dist
+**/*.stl
+**/*.stp
+main.py
