@@ -13,6 +13,7 @@ pr = 5  # radius of the pivot
 # %%
 pivot = Cylinder(pr, t)
 disk = Cylinder(r + 2 * pr, t) - clone(pivot) + Pos(r, 0, t) * clone(pivot)
+disk -= PolarLocations(0.6 * r, 6) * Cylinder(r / 6, t)
 
 disk.color = "MediumAquaMarine"
 
@@ -60,9 +61,11 @@ disk_arm = AnimationGroup(
     ],
 )
 
-show(disk_arm, render_joints=False)
+show(disk_arm, render_joints=True)
 
 # %%
+
+show(disk_arm, render_joints=False)
 
 
 def angle_arm(angle_disk):
@@ -80,4 +83,5 @@ arm_track = [angle_arm(a) for a in disk_track]
 
 animation.add_track("/disk_arm/disk", "rz", time_track, normalize_track(disk_track))
 animation.add_track("/disk_arm/arm", "rz", time_track, normalize_track(arm_track))
-animation.animate(speed=0.5)
+
+animation.animate(speed=1)
