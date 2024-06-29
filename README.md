@@ -1,21 +1,25 @@
 # Animation for [build123d](https://github.com/gumyr/build123d) and [OCP CAD Viewer](https://github.com/bernhard-42/vscode-ocp-cad-viewer)
 
-## Intro
+## 1 Intro
 
-### The animation system
+### 1.1 The animation system
 
 The animation feature is built on OCP CAD Viewer and uses the [threejs animation system](https://threejs.org/docs/index.html?q=animation#manual/en/introduction/Animation-system). This is a low level system where you provide two tracks per animated object: The time track and the track of positions or rotations.
 
 For example, the following definitions
 
 ```python
-time_track = np.linspace(0, 2, 181)
-rotation_track = np.linspace(0, 360, 181)
+duration = 2
+max_angle = 360
+steps = 180
+
+time_track = np.linspace(0, duration, steps + 1)
+rotation_track = np.linspace(0, max_angle, steps + 1)
 ```
 
-define a full 360° rotation of an object in 2 seconds defined as 181 steps (181 to start with 0° and end with 360°). Each value of the rotation is the angle the object should be rotated to.
+define a full 360° rotation of an object in 2 seconds defined as 181 steps (181 to start with 0° and end with 360°). Each value of the rotation is the angle the object should be rotated to relative to the start position. Hence tracks typically start with 0 and for continuous animationations also end with 0.
 
-### The animation library
+### 1.2 The animation library
 
 The `bd_animation` library provides one class and two helper functions:
 
@@ -25,7 +29,7 @@ The `bd_animation` library provides one class and two helper functions:
 
     - `children`: A dict of object names and objects, e.g. `children={"base": base, "disk": disk, "arm": arm}`
     - `label`: The name of the `AnimationGroup`
-    - `assemble`: If the objects have build123d `Joints`, then `assemble` defines how to connect the objects. It is an array of tuples, where each tuple defines one connection. `AnimationGroup` as a subclass of `Compound` uses `build123d.Joints.connect_to` to connect the objects. For example
+    - `assemble`: If the objects have build123d `Joints`, then `assemble` defines how to connect the objects. It is an array of tuples, where each tuple defines one connection. As a subclass of `Compound`, `AnimationGroup` uses `build123d.Joints.connect_to` to connect the objects. For example
 
       ```python
       assemble=[
@@ -43,8 +47,8 @@ The `bd_animation` library provides one class and two helper functions:
 
       **Notes:**
 
-      - `AnimationGroup` defines `__getitem__` and as such allows to reference an object in an hierachical `AnimationGroup` as `hexapod["/hexapod/left_leg/upper_leg"]`
-      - In order for the animation to work, show only the `AnimationGroup` in OCP CAD Viewer. Other objects (e.g. joints) will probably alter the paths
+      - `AnimationGroup` defines `__getitem__` and as such allows to reference an object in a hierachical `AnimationGroup` as `hexapod["/hexapod/left_leg/upper_leg"]`
+      - In order for the animation to work, only show the `AnimationGroup` in OCP CAD Viewer, no other objects: other objects (e.g. joints) will probably alter the paths and disable the proper animation.
 
 2.  `def clone(obj, color=None, origin=None)`:
 
@@ -54,9 +58,9 @@ The `bd_animation` library provides one class and two helper functions:
 
     Since animation tracks are relative to the starting location, this function simple subtracts the first array element from all elements of the array
 
-## Example
+## 2 Example
 
-### The objects
+### 2.1 The objects
 
 Assume we have the following three objects (the code can be found [here](./examples/disk_arm.py)):
 
@@ -72,9 +76,9 @@ Assume we have the following three objects (the code can be found [here](./examp
 
   ![arm](./examples/arm.png)
 
-### The AnimationGroup
+### 2.2 The AnimationGroup
 
-As discussed above, we build the `AnimationGroup` by adding the three objects and assembling them.
+As discussed above, we build the animation group by adding the three objects and assembling them.
 
 ```python
 disk_arm = AnimationGroup(
@@ -91,7 +95,7 @@ show(disk_arm, render_joints=True)
 
 ![disk_arm AnimationGroup](./examples/disk_arm_animationgroup.png)
 
-### Defining the animation
+### 2.3 Defining the animation
 
 The disk should rotate around the center and the arm should follow the pivot on the disk. The function `angle_arm` calculates the angle of the arm for each rotation angle of the disk:
 
@@ -127,3 +131,55 @@ animation.animate(speed=1)
 ```
 
 ![disk arm animated](./examples/disk_arm_animated.gif)
+
+## 3 The need for relocation
+
+That was easy, wasn't it?
+
+The main reason why it was so easy is that the disk and the arm were created with their location being at `(0, 0, 0)`. That means a rotation around `z` rotated the disk around the center of circle and the arm around the center of the hole - exactly what we wanted.
+
+Now, assume we would have had this situation for the arm
+
+![arm uncentered](./examples/arm_uncentered.png)
+
+with `arm.location` being equal to `Location()`, i.e the world origin, see [disk_arm2.py](./examples/disk_arm2.py).
+
+Applying the same logic as above leads to:
+
+![disk arm animated](./examples/disk_arm_uncentered_animated.gif)
+
+This is clearly not what we want.
+
+In this case, we wrap the arm into an `AnimationGroup` and relocate it:
+
+```python
+slot = extrude(Pos(d, 0, 0) * SlotCenterToCenter(2 * r, 2 * pr), t, both=True)
+
+arm = Rectangle(4 * pr + (r + d), 4 * pr, align=(Align.MIN, Align.MIN))
+arm = extrude(arm, t / 2, both=True)
+arm -= Pos(2 * pr, 2 * pr, 0) * slot
+arm -= Pos(2 * pr, 2 * pr, 0) * pivot
+                                            # <== (1) No joint on arm
+arm_group = AnimationGroup(
+    children={
+        "arm": clone(                       # <== (2) clone the object ...
+            arm,
+            origin=Pos(2 * pr, 2 * pr, 0),  #     ... and provide the origin to clone
+        )
+    },
+    label="arm_group",
+)
+
+RevoluteJoint(
+    label="connect",
+    to_part=arm_group,                      # <== (3) add the joint to the AnimationGroup ...
+    axis=Axis(
+        (0, 0, 0),                          #     ... as the z-axis
+        (0, 0, 1),
+    ),
+)
+```
+
+The animation group `arm_group` has only one child, `arm`. However, since we want to modify it, we clone it. For convenience, clone takes the `origin` parameter and relocates the arm. The joint cor connecting will be assigned to the animation group and not to the arm object. And, of course, this joint is along the z-axis starting at `(0,0,0)` .
+
+Continuing with the same code as in the example above (2.3), we get the expected result.
