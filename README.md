@@ -183,3 +183,7 @@ RevoluteJoint(
 The animation group `arm_group` has only one child, `arm`. However, since we want to modify it, we clone it. For convenience, clone takes the `origin` parameter and relocates the arm. The joint for assembling the objects will be assigned to the animation group and not to the arm object. And, of course, this joint is along the z-axis starting at `(0,0,0)` .
 
 Continuing with the same code as in the example above (2.3), we get the expected result.
+
+# 4 Other axamples
+
+- [An engine animation](./docs/engine.md)

@@ -25,7 +25,7 @@ engine
     ...
 ```
 
-- The `piston` ani9mation group combines the `piston_head` and the `piston_pin`. 
+- The `piston` animation group combines the `piston_head` and the `piston_pin`. 
 - The `rod` combines the rod connector `rod_con` with the rod cap `rod_cap`. `rod`and `piston` will be connected as `rod_piston` and four of them will be connected to the `crankshaft`.
 - The animation group `crankshaft` contains the object `crankshaft` and the four `piston_rod`s. 
 
@@ -149,7 +149,7 @@ RevoluteJoint(label="axis", to_part=crank, axis=Axis((0, 0, 0), (1, 0, 0)))
 
 ### 2.5 The complete engine animation group
 
-We assign a joint to the engine block and connect the assembled crankhsaft to it
+We assign a joint to the engine block and connect the assembled crankshaft to it
 
 ```python
 RigidJoint(label="connect", to_part=engine_block, joint_location=Rot(0, -90, 0))
