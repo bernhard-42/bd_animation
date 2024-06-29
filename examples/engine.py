@@ -1,9 +1,11 @@
 # %%%
-import numpy as np
 import math
+
+import numpy as np
 from build123d import *
 from ocp_vscode import *
 from ocp_vscode.animation import Animation
+
 from bd_animation import AnimationGroup, clone, normalize_track
 
 set_defaults(helper_scale=8, render_joints=False, reset_camera=Camera.RESET)
@@ -35,7 +37,14 @@ piston_head = Compound(
 )
 piston_head.location = Location()
 
-show(engine_block, rod_con, rod_cap, crankshaft, piston_pin, piston_head)
+show(
+    Location((-400, 200, 0), (0, 0, 180)) * engine_block,
+    Pos(120, 0, 0) * rod_con,
+    Pos(200, 0, 0) * rod_cap,
+    Pos(0, 100, 0) * crankshaft,
+    Pos(300, 0, 0) * piston_pin,
+    Pos(300, 80, 0) * piston_head,
+)
 
 # %% Rod AnimationGroup
 
@@ -56,9 +65,9 @@ c = rod.faces().filter_by(GeomType.CYLINDER).sort_by(Axis.Y)[-2].center()
 c.Z = 0
 rod_axis = Axis(list(c), (1, 0, 0))
 rod_loc = rod_axis.location
-RevoluteJoint(label="center_top", to_part=rod, axis=rod_axis)
+j = RevoluteJoint(label="center_top", to_part=rod, axis=rod_axis)
 
-show(rod)
+show(rod, j.symbol)
 
 # %% Piston AnimationGroup
 
@@ -77,9 +86,9 @@ piston = AnimationGroup(
     label="piston",
     assemble=[("piston_head:connect", "piston_pin:connect")],
 )
-RigidJoint(label="pin", to_part=piston, joint_location=Location())
+j = RigidJoint(label="pin", to_part=piston, joint_location=Location())
 
-show(piston)
+show(piston, j.symbol)
 
 # %% Rod connected to piston AnimationGroup
 
@@ -91,9 +100,9 @@ rod_piston = AnimationGroup(
     label="rod_piston",
     assemble=[("rod:center_top", "piston:pin")],
 )
-RevoluteJoint(label="center_bot", to_part=rod_piston, axis=Axis.Z)
+j = RevoluteJoint(label="center_bot", to_part=rod_piston, axis=Axis.Z)
 
-show(rod_piston)
+show(rod_piston, j.symbol)
 
 # %% Crankshaft AnimationGroup
 crankshaft = Rot(*crankshaft.location.orientation).inverse() * crankshaft
@@ -119,19 +128,17 @@ crank = AnimationGroup(
     },
 )
 
-RevoluteJoint(label="axis", to_part=crank, axis=Axis((0, 0, 0), (1, 0, 0)))
+j = RevoluteJoint(label="axis", to_part=crank, axis=Axis((0, 0, 0), (1, 0, 0)))
 
-show(crank)
+show(crank, j.symbol)
 
 # %% Engine block and crankshaft AnimationGroup
 
 engine_block.location = Rot(0, 0, 180)
 RigidJoint(label="connect", to_part=engine_block, joint_location=Rot(0, -90, 0))
 
-children = {"engine_block": engine_block, "crankshaft": crank}
-
 engine = AnimationGroup(
-    children=children,
+    children={"engine_block": engine_block, "crankshaft": crank},
     label="engine",
     assemble=[("engine_block:connect", "crankshaft:axis")],
 )
