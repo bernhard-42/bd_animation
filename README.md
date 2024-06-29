@@ -148,9 +148,9 @@ Applying the same logic as above leads to:
 
 ![disk arm animated](./examples/disk_arm_uncentered_animated.gif)
 
-This is clearly not what we want.
+This is clearly not what we want, the arm doesn't rotate around the center of the hole.
 
-In this case, we wrap the arm into an `AnimationGroup` and relocate it:
+This is because the animation system of threejs does not care about build123d joints or so. It simply rotates the object around its location. In this case, we wrap the arm into an `AnimationGroup` and relocate it:
 
 ```python
 slot = extrude(Pos(d, 0, 0) * SlotCenterToCenter(2 * r, 2 * pr), t, both=True)
