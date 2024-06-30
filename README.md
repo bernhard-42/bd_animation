@@ -71,19 +71,19 @@ The `bd_animation` library provides one class and two helper functions:
 
 ### 2.1 The objects
 
-Assume we have the following three objects (the code can be found [here](./examples/disk_arm.py)):
+Assume we have the following three objects (the code can be found [here](./docs/disk_arm.py)):
 
 - The base
 
-  ![base](./examples/base.png)
+  ![base](./docs/base.png)
 
 - A disk with a hole and a pivot
 
-  ![disk](./examples/disk.png)
+  ![disk](./docs/disk.png)
 
 - An arm with a slotted hole
 
-  ![arm](./examples/arm.png)
+  ![arm](./docs/arm.png)
 
 ### 2.2 The AnimationGroup
 
@@ -102,7 +102,7 @@ disk_arm = AnimationGroup(
 show(disk_arm, render_joints=True)
 ```
 
-![disk_arm AnimationGroup](./examples/disk_arm_animationgroup.png)
+![disk_arm AnimationGroup](./docs/disk_arm_animationgroup.png)
 
 ### 2.3 Defining the animation
 
@@ -139,7 +139,7 @@ Finally, initiate the animation:
 animation.animate(speed=1)
 ```
 
-![disk arm animated](./examples/disk_arm_animated.gif)
+![disk arm animated](./docs/disk_arm_animated.gif)
 
 ## 3 The need for relocation
 
@@ -149,13 +149,13 @@ The main reason why it was so easy is that the disk and the arm were created wit
 
 Now, assume we would have had this situation for the arm
 
-![arm uncentered](./examples/arm_uncentered.png)
+![arm uncentered](./docs/arm_uncentered.png)
 
-with `arm.location` being equal to `Location()`, i.e the world origin, see [disk_arm2.py](./examples/disk_arm2.py).
+with `arm.location` being equal to `Location()`, i.e the world origin, see [disk_arm2.py](./docs/disk_arm2.py).
 
 Applying the same logic as above leads to:
 
-![disk arm animated](./examples/disk_arm_uncentered_animated.gif)
+![disk arm animated](./docs/disk_arm_uncentered_animated.gif)
 
 This is clearly not what we want, the arm doesn't rotate around the center of the hole.
 
@@ -205,4 +205,4 @@ Continuing with the same code as in the example above (2.3), we get the expected
 
 - [Jansen linkage animation](./docs/jansen.md)
 
-    ![Jansen animated](./jansen.gif)
+    ![Jansen animated](./docs/jansen.gif)
