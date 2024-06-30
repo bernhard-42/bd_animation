@@ -25,32 +25,39 @@ The `bd_animation` library provides one class and two helper functions:
 
 1.  `class AnimationGroup(build123d.Compound)`:
 
-    A thin layer on top of the standard build123d `Compound`. The initializer gets three keyword parameters:
+    A very thin layer on top of the standard build123d `Compound` with two methods::
+    
+    - `__init__`:
+        
+        The initializer gets three keyword parameters:
 
-    - `children`: A dict of object names and objects, e.g. `children={"base": base, "disk": disk, "arm": arm}`
-    - `label`: The name of the `AnimationGroup`
-    - `assemble`: If the objects have build123d `Joints`, then `assemble` defines how to connect the objects. It is an array of tuples, where each tuple defines one connection. As a subclass of `Compound`, `AnimationGroup` uses `build123d.Joints.connect_to` to connect the objects. For example
+        - `children`: A dict of object names and objects, e.g. `children={"base": base, "disk": disk, "arm": arm}`
 
-      ```python
-      assemble=[
-          ("base:disk_base", "disk:center"),
-          ("base:arm_base", "arm:connect"),
-      ]
-      ```
+        - `label`: The name of the `AnimationGroup`
 
-      will connect
+        - `assemble`: If the objects have build123d `Joints`, then `assemble` defines how to connect the objects. It is an array of tuples, where each tuple defines one connection. As a subclass of `Compound`, `AnimationGroup` uses `build123d.Joints.connect_to` to connect the objects. For example
 
-      - the `center` joint of the object `disk` to the `disk_base` joint of object `base`
-      - the `connect` joint of the object `arm` to the `arm_base` joint of object `base`
+        ```python
+        assemble=[
+            ("base:disk_base", "disk:center"),
+            ("base:arm_base", "arm:connect"),
+        ]
+        ```
 
-      The generic pattern is `path:joint_name`. In a hierarchical `AnimationGroup`, `path` will be the path of object names from root down to the object, e.g. `"/hexapod/left_leg/upper_leg"`. The leading `/` can be omitted. The class ensures that the objects are connected _before_ they get added to the `build123d.Compound` (current build123d restriction).
+        will connect
 
-      Additionally, a dict like `{"angle": 90}` can be provided, it will be passed to `build123d.Joints.connect_to` as is.
+        - the `center` joint of the object `disk` to the `disk_base` joint of object `base`
+        - the `connect` joint of the object `arm` to the `arm_base` joint of object `base`
 
-      **Notes:**
+        The generic pattern is `path:joint_name`. In a hierarchical `AnimationGroup`, `path` will be the path of object names from root down to the object, e.g. `"/hexapod/left_leg/upper_leg"`. The leading `/` can be omitted. The class ensures that the objects are connected _before_ they get added to the `build123d.Compound` (current build123d restriction).
 
-      - `AnimationGroup` defines `__getitem__` and as such allows to reference an object in a hierachical `AnimationGroup` as `hexapod["/hexapod/left_leg/upper_leg"]`
-      - In order for the animation to work, only show the `AnimationGroup` in OCP CAD Viewer, no other objects: other objects (e.g. joints) will probably alter the paths and disable the proper animation.
+        Additionally, a dict like `{"angle": 90}` can be provided, it will be passed to `build123d.Joints.connect_to` as is.
+
+    - `__getitem__`:
+    
+        `AnimationGroup` allows to reference an object in a hierachical animation group as `group["/root/level1/level2"]` or `group["/root/level1/level2:joint_name"]`.This is in line with the `path:joint_name` pattern above.
+
+    **Note:** In order for the animation to work, only show the `AnimationGroup` in OCP CAD Viewer, no other objects: other objects (e.g. joints) will probably alter the paths and disable the proper animation.
 
 2.  `def clone(obj, color=None, origin=None)`:
 
@@ -188,4 +195,12 @@ Continuing with the same code as in the example above (2.3), we get the expected
 
 # 4 Other axamples
 
+## 4.1 Hierarchical animation groups
+    
 - [An engine animation](./docs/engine.md)
+
+    ![engine animation](./docs/engine.gif)
+
+## 4.2 Directly computed animation groups
+
+- [Jansen linkage animation](./docs/jansen.md)

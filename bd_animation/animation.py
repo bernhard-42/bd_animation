@@ -48,6 +48,9 @@ class AnimationGroup(Compound):
 
     def __getitem__(self, path):
         """Get a part by path."""
+        joint_name = None
+        if ":" in path:
+            path, joint_name = path.split(":")
         resolver = anytree.Resolver("label")
         name, _, rest = path.strip("/").partition("/")
         if name != self.label:
@@ -55,4 +58,5 @@ class AnimationGroup(Compound):
         elif rest == "":
             return self
 
-        return resolver.get(self, rest)
+        obj = resolver.get(self, rest)
+        return obj if joint_name is None else obj.joints[joint_name]
