@@ -45,6 +45,8 @@ The `bd_animation` library provides one class and two helper functions:
 
       The generic pattern is `path:joint_name`. In a hierarchical `AnimationGroup`, `path` will be the path of object names from root down to the object, e.g. `"/hexapod/left_leg/upper_leg"`. The leading `/` can be omitted. The class ensures that the objects are connected _before_ they get added to the `build123d.Compound` (current build123d restriction).
 
+      Additionally, a dict like `{"angle": 90}` can be provided, it will be passed to `build123d.Joints.connect_to` as is.
+
       **Notes:**
 
       - `AnimationGroup` defines `__getitem__` and as such allows to reference an object in a hierachical `AnimationGroup` as `hexapod["/hexapod/left_leg/upper_leg"]`

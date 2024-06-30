@@ -1,4 +1,4 @@
-# %%%
+# %%
 import math
 
 import numpy as np
@@ -52,7 +52,7 @@ e = rod_cap.edges().filter_by(GeomType.CIRCLE).group_by(Axis.Y)[0].sort_by()
 c = (e[2] + e[3]).center()
 loc = Location(list(c), (0, 0, 180))
 
-RigidJoint(label="connect", to_part=rod_con, joint_location=Pos(*c))
+RigidJoint(label="connect", to_part=rod_con, joint_location=Pos(c))
 RigidJoint(label="connect", to_part=rod_cap, joint_location=loc)
 
 rod = AnimationGroup(
@@ -74,19 +74,23 @@ show(rod, j.symbol)
 holes = piston_head.faces().filter_by(GeomType.CYLINDER).group_by()[2]
 r = holes[0].edges().filter_by(GeomType.CIRCLE)[0].radius
 pos = (0, 0, r + holes[0].center().Z)
-loc = Location(pos, (90, 0, 180))
+loc = Location(pos, (0, 0, 90))
 
-RigidJoint(label="connect", to_part=piston_pin, joint_location=Rot(0, 90, 90))
+RigidJoint(label="connect", to_part=piston_pin)
 RigidJoint(label="connect", to_part=piston_head, joint_location=loc)
+
 piston = AnimationGroup(
-    children={
-        "piston_head": clone(piston_head, origin=loc),
-        "piston_pin": clone(piston_pin),
-    },
+    children={"piston_head": piston_head, "piston_pin": piston_pin},
     label="piston",
-    assemble=[("piston_head:connect", "piston_pin:connect")],
+    assemble=[("piston_pin:connect", "piston_head:connect")],
 )
-j = RigidJoint(label="pin", to_part=piston, joint_location=Location())
+
+# ensure z direction is along the cylinder height to fit to the RevoluteJoint
+j = RigidJoint(
+    label="pin",
+    to_part=piston,
+    joint_location=Rot(0, 90, 0) * piston["/piston/piston_pin"].location,
+)
 
 show(piston, j.symbol)
 
@@ -98,7 +102,7 @@ rod_piston = AnimationGroup(
         "piston": clone(piston, origin=Pos(pos)),
     },
     label="rod_piston",
-    assemble=[("rod:center_top", "piston:pin")],
+    assemble=[("rod:center_top", "piston:pin", {"angle": 90})],
 )
 j = RevoluteJoint(label="center_bot", to_part=rod_piston, axis=Axis.Z)
 
@@ -191,7 +195,7 @@ for i in range(4):
     )
     animation.add_track(
         f"/engine/crankshaft/rod_piston_{i}/piston",
-        "rz",
+        "rx",
         time_track,
         normalize_track(piston_track[i]),
     )

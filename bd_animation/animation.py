@@ -1,7 +1,7 @@
 import copy
-import numpy as np
 
 import anytree
+import numpy as np
 from build123d import *
 
 
@@ -30,8 +30,11 @@ class AnimationGroup(Compound):
 
         # Assemble the parts
         # Note: this needs top be done before adding the parts to the Compound
-        for s, t in assemble or []:
-            path, joint_name = s.split(":")
+        for definition in assemble or []:
+            o = definition[0]
+            t = definition[1]
+            kwargs = {} if len(definition) == 2 else definition[2]
+            path, joint_name = o.split(":")
             obj = children[path]
             joint = obj.joints[joint_name]
 
@@ -39,7 +42,7 @@ class AnimationGroup(Compound):
             to_obj = children[to_path]
             to_joint = to_obj.joints[to_joint_name]
 
-            joint.connect_to(to_joint)
+            joint.connect_to(to_joint, **kwargs)
 
         super().__init__(label=label, children=list(children.values()))
 

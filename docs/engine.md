@@ -2,7 +2,7 @@
 
 ## 1 The parts
 
-Firstly, download the [engine step file](https://grabcad.com/library/engine-assembly-77).
+Firstly, download the [engine step file](https://grabcad.com/library/engine-assembly-77) from [grabcad](https://grabcad.com).
 
 Then extract the 6 relevant parts from the step file, see [engine.py](../examples/engine.py):
 
@@ -26,12 +26,13 @@ engine
 ```
 
 - The `piston` animation group combines the `piston_head` and the `piston_pin`. 
-- The `rod` combines the rod connector `rod_con` with the rod cap `rod_cap`. `rod`and `piston` will be connected as `rod_piston` and four of them will be connected to the `crankshaft`.
-- The animation group `crankshaft` contains the object `crankshaft` and the four `piston_rod`s. 
+- The `rod` animation group combines the rod connector `rod_con` with the rod cap `rod_cap`. 
+- `rod`and `piston` will be connected to the `rod_piston` animation group.
+- The animation group `crankshaft` contains the object `crankshaft` and four `piston_rod`s. 
 
 This means:
-- If the animation group `crankshaft` rotates, the object `crankshaft` will rotate, but also the connected `piston_rod`s.
-- The `piston_rod`s need to be rotated around the large hole center, so that the small hole (which will be connected to the `piston`) is aligned with the `engine_block`.
+- If the animation group `crankshaft` rotates, the object `crankshaft` will rotate as well as the connected `piston_rod`s.
+- The `piston_rod`s need to be rotated around the rod's large hole center, so that the small hole (which is connected to the piston) is aligned with the engine block.
 - Finally the piston needs to rotate around the `piston_pin` so that the piston is also aligned with the engine block.
 
 No worries, this will be clearer later.
@@ -44,7 +45,7 @@ No worries, this will be clearer later.
 Add `RigidJoint`s to the rod connector and cap and assemble them:
 
 ```python
-RigidJoint(label="connect", to_part=rod_con, joint_location=Pos(*c))
+RigidJoint(label="connect", to_part=rod_con, joint_location=Pos(c))
 RigidJoint(label="connect", to_part=rod_cap, joint_location=loc)
 
 rod = AnimationGroup(
@@ -53,7 +54,7 @@ rod = AnimationGroup(
     assemble=[("rod_con:connect", "rod_cap:connect")],
 )
 ```
-No further logic needed.
+Given the way the rod connector and rod cap are located, the assembled rod already has the world origin at `(0,0,0)`, hence no further logic needed. This will be needed later for the anmiation.
 
 Next we add a joint to the animation group (details, again, see [engine.py](../examples/engine.py)):
 ```python
@@ -64,37 +65,40 @@ show(rod, j.symbol)
 
 ![rod](./rod.png)
 
-Note: Currently OCP CAD Viewer doesn't show joints of `Compound`s and hence also not of `AnimationGroup`s. Hence the use of `j.symbol` in `show`.
+Note: Currently OCP CAD Viewer doesn't show joints of `Compound`s and hence also not of `AnimationGroup`s: for the time being, use `j.symbol` in `show`.
 
 ### 2.2 The piston animation group
 
 Add `RigidJoint`s to the piston head and pin and assemble them:
 
 ```python
-RigidJoint(label="connect", to_part=piston_pin, joint_location=Rot(0, 90, 90))
+RigidJoint(label="connect", to_part=piston_pin)
 RigidJoint(label="connect", to_part=piston_head, joint_location=loc)
 
 piston = AnimationGroup(
-    children={
-        "piston_head": clone(piston_head, origin=loc),
-        "piston_pin": clone(piston_pin),
-    },
+    children={"piston_head": piston_head, "piston_pin": piston_pin},
     label="piston",
-    assemble=[("piston_head:connect", "piston_pin:connect")],
+    assemble=[("piston_pin:connect", "piston_head:connect")],
 )
 ```
-Since we connect the pin to the head, we will later need to rotate the head. Hence relocate it to the rotation origin `loc`. `loc` is the mass center of the pin, but needs to be applied to the head in this case, details see [engine.py](../examples/engine.py)
 
-Next we add a joint to the animation group (details, again, see [engine.py](../examples/engine.py)):
+Next we add a joint to the animation group. We need to ensure that the z direction of the joint is along the cylinder height to fit to the RevoluteJoint of the rod (see [engine.py](../examples/engine.py)).
+
 ```python
-RigidJoint(label="pin", to_part=piston, joint_location=Location())
+j = RigidJoint(
+    label="pin",
+    to_part=piston,
+    joint_location=Rot(0, 90, 0) * piston["/piston/piston_pin"].location,
+)
 ```
 
 ![piston](./piston.png)
 
+Note the location of the piston animation group: Since the x-axis of the location is along the cylinder height, we later need to rotate around x to rotate the piston "around the pin".
+
 ### 2.4 Rod connected to piston animation group
 
-This time we already have the joints, they have been assigned to the involved animation groups earlier (see above).
+This time we already have the joints, they have been assigned to the involved animation groups earlier (see above). However, we need to provide an angle to correctly rotate the piston around revolute joint of the rod.
 
 ```python
 rod_piston = AnimationGroup(
@@ -103,7 +107,7 @@ rod_piston = AnimationGroup(
         "piston": clone(piston, origin=Pos(pos)),
     },
     label="rod_piston",
-    assemble=[("rod:center_top", "piston:pin")],
+    assemble=[("rod:center_top", "piston:pin", {"angle": 90})],
 )
 ```
 
@@ -115,13 +119,15 @@ RevoluteJoint(label="center_bot", to_part=rod_piston, axis=Axis.Z)
 
 ![rod piston](./rod_piston.png)
 
+As can be seen, both the revolute joint and the location of the assembly are at the center of the large hole of the rod and the z-axis is orthogonal to the xy-plane. This is needed later for rotation this animation group around their location on the crankshaft.
+
 ### 2.5 The crankshaft animation group
 
 Add `RigidJoint`s to the crankshaft as connectors for the `piston_rod` animation group:
 
 ![crankshaft](./crankshaft.png)
 
-Given these four joints, we can assemble the `rod_piston`s to the crankshaft:
+Given these four joints (`pin_0`, ..., `pin_3`), we can assemble the `rod_piston`s to the crankshaft:
 
 ```python
 children = {"crankshaft": clone(crankshaft)}
@@ -198,13 +204,13 @@ for i in range(4):
 ```
 ![engine animation crankshaft and rod](./engine2.gif)
 
-Finally align the pistons:
+Finally align the pistons to the engine block. As mentioned above, we this time need to rotate around the x-axis:
 
 ```python
 for i in range(4):
     animation.add_track(
         f"/engine/crankshaft/rod_piston_{i}/piston",
-        "rz",
+        "rx",
         time_track,
         normalize_track(piston_track[i]),
     )
