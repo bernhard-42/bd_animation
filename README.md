@@ -204,3 +204,5 @@ Continuing with the same code as in the example above (2.3), we get the expected
 ## 4.2 Directly computed animation groups
 
 - [Jansen linkage animation](./docs/jansen.md)
+
+    ![Jansen animated](./jansen.gif)

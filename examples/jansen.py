@@ -2,6 +2,7 @@
 import numpy as np
 from build123d import *
 from ocp_vscode import *
+
 from bd_animation import AnimationGroup, clone, normalize_track
 
 set_defaults(render_joints=True, helper_scale=8, reset_camera=Camera.KEEP)
@@ -139,9 +140,11 @@ def linkage(alpha):
 
 points, angles = linkage(alpha=0)
 
+base = Polyline(points[0], (points[1][0], 0), points[1])
 
 jansen = AnimationGroup(
     children={
+        "base": clone(base, color="Gray"),
         f"link{ids[0]}": triangle(ids[0], points),
         f"link{ids[1]}": triangle(ids[1], points),
         f"link{ids[2]}": link(ids[2], points),
@@ -153,7 +156,9 @@ jansen = AnimationGroup(
     label="jansen",
 )
 
-vertices = [Vertex(p) for p in points]
+dirs = ((5, 5), (6, 0), (-6, 0), (0, -6), (6, 0), (-6, 4), (6, 2), (-6, 4))
+
+vertices = [Pos(p - dirs[i]) * Text(str(i), 8) for i, p in enumerate(points)]
 for i, v in enumerate(vertices):
     v.label = f"p({i})"
 
