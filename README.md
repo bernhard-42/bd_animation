@@ -151,7 +151,7 @@ Now, assume we would have had this situation for the arm
 
 ![arm uncentered](./docs/arm_uncentered.png)
 
-with `arm.location` being equal to `Location()`, i.e the world origin, see [disk_arm2.py](./docs/disk_arm2.py).
+with `arm.location` being equal to `Location()`, i.e the world origin, see [disk_arm2.py](../examples/disk_arm2.py).
 
 Applying the same logic as above leads to:
 
