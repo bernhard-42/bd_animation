@@ -49,7 +49,7 @@ show(
 # %% Rod AnimationGroup
 
 e = rod_cap.edges().filter_by(GeomType.CIRCLE).group_by(Axis.Y)[0].sort_by()
-c = (e[2] + e[3]).center()
+c = (e[2] + e[3]).center(CenterOf.MASS)
 loc = Location(list(c), (0, 0, 180))
 
 RigidJoint(label="connect", to_part=rod_con, joint_location=Pos(c))
@@ -61,7 +61,7 @@ rod = AnimationGroup(
     assemble=[("rod_con:connect", "rod_cap:connect")],
 )
 
-c = rod.faces().filter_by(GeomType.CYLINDER).sort_by(Axis.Y)[-2].center()
+c = rod.faces().filter_by(GeomType.CYLINDER).sort_by(Axis.Y)[-2].center(CenterOf.MASS)
 c.Z = 0
 rod_axis = Axis(list(c), (1, 0, 0))
 rod_loc = rod_axis.location
@@ -73,7 +73,7 @@ show(rod, j.symbol)
 
 holes = piston_head.faces().filter_by(GeomType.CYLINDER).group_by()[2]
 r = holes[0].edges().filter_by(GeomType.CIRCLE)[0].radius
-pos = (0, 0, r + holes[0].center().Z)
+pos = (0, 0, r + holes[0].center(CenterOf.MASS).Z)
 loc = Location(pos, (0, 0, 90))
 
 RigidJoint(label="connect", to_part=piston_pin)
@@ -115,7 +115,7 @@ c_locs = []
 for i, (x, y) in enumerate(((-350, 40), (-250, -40), (-150, -40), (-50, 40))):
     f = crankshaft.faces().filter_by(GeomType.CYLINDER).sort_by_distance((x, 0, y))
     c = f[0] + f[1]
-    l = Location(c.center(), (0, 90, -90))
+    l = Location(c.center(CenterOf.MASS), (0, 90, -90))
     c_locs.append(l)
     RigidJoint(label=f"pin_{i}", to_part=crankshaft, joint_location=l)
 
