@@ -26,11 +26,9 @@ The `bd_animation` library provides one class and two helper functions:
 1.  `class AnimationGroup(build123d.Compound)`:
 
     A very thin layer on top of the standard build123d `Compound` with two methods::
-    
     - `__init__`:
-        
-        The initializer gets three keyword parameters:
 
+        The initializer gets three keyword parameters:
         - `children`: A dict of object names and objects, e.g. `children={"base": base, "disk": disk, "arm": arm}`
 
         - `label`: The name of the `AnimationGroup`
@@ -45,7 +43,6 @@ The `bd_animation` library provides one class and two helper functions:
         ```
 
         will connect
-
         - the `center` joint of the object `disk` to the `disk_base` joint of object `base`
         - the `connect` joint of the object `arm` to the `arm_base` joint of object `base`
 
@@ -54,7 +51,7 @@ The `bd_animation` library provides one class and two helper functions:
         Additionally, a dict like `{"angle": 90}` can be provided, it will be passed to `build123d.Joints.connect_to` as is.
 
     - `__getitem__`:
-    
+
         `AnimationGroup` allows to reference an object in a hierachical animation group as `group["/root/level1/level2"]` or `group["/root/level1/level2:joint_name"]`.This is in line with the `path:joint_name` pattern above.
 
     **Note:** In order for the animation to work, only show the `AnimationGroup` in OCP CAD Viewer, no other objects: other objects (e.g. joints) will probably alter the paths and disable the proper animation.
@@ -75,15 +72,15 @@ Assume we have the following three objects (the code can be found [here](./docs/
 
 - The base
 
-  ![base](./docs/base.png)
+    ![base](./docs/base.png)
 
 - A disk with a hole and a pivot
 
-  ![disk](./docs/disk.png)
+    ![disk](./docs/disk.png)
 
 - An arm with a slotted hole
 
-  ![arm](./docs/arm.png)
+    ![arm](./docs/arm.png)
 
 ### 2.2 The AnimationGroup
 
@@ -195,13 +192,19 @@ Continuing with the same code as in the example above (2.3), we get the expected
 
 # 4 Other axamples
 
-## 4.1 Hierarchical animation groups
-    
+## 4.1 A simple slider crank mechanism
+
+- See [slider-crank.py](examples/slider-crank.py)
+
+    ![slider crank animation](./docs/slider-crank.gif)
+
+## 4.2 Hierarchical animation groups
+
 - [An engine animation](./docs/engine.md)
 
     ![engine animation](./docs/engine.gif)
 
-## 4.2 Directly computed animation groups
+## 4.3 Directly computed animation groups
 
 - [Jansen linkage animation](./docs/jansen.md)
 
