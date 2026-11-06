@@ -14,7 +14,7 @@ setup_args = {
     "long_description": LONG_DESCRIPTION,
     "include_package_data": True,
     "python_requires": ">=3.9",
-    "install_requires": ["ocp_vscode", "build123d"],
+    "install_requires": ["build123d"],
     "extras_require": {
         "dev": {"twine", "bumpversion", "black", "pylint", "pyYaml"},
     },
